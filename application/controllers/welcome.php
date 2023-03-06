@@ -281,8 +281,8 @@ class Welcome extends CI_Controller {
 		$config = array();
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'smtp.gmail.com';
-		$config['smtp_user'] = 'ticketsyste20@gmail.com';
-		$config['smtp_pass'] = 'bkhonhnccuxempcn';
+		$config['smtp_user'] = $GLOBALS['email'];
+		$config['smtp_pass'] = $GLOBALS['emailpassword'];
 		$config['smtp_port'] = 587;
 		$config['charset'] = 'iso-8859-1';
 		$config['wordwrap'] = TRUE;
