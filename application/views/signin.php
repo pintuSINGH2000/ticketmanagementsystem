@@ -48,7 +48,7 @@
        
             <img src="<?php echo base_url('asset/img/lock.png'); ?>">
             <div class="identity">
-                <h3>Forgot Password? <a href="#reset">Reset</a></h3>
+                <h3>Forgot Password? <a href="<?php echo site_url('welcome/forgetpassword') ?>">Reset</a></h3>
                 <p>We will send a password reset link to your email address</p>
             </div>
         </div>

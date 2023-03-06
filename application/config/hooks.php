@@ -9,7 +9,13 @@
 |	http://codeigniter.com/user_guide/general/hooks.html
 |
 */
-
+$hook['myhook'][] = array(
+    'class'    => 'TicketSystem',
+    'function' => 'abc',
+    'filename' => 'ticketsystem.php',
+    'filepath' => 'hooks',
+    'params' => ''
+    );
 
 
 /* End of file hooks.php */
