@@ -1,0 +1,53 @@
+<body ng-controller="signinController">
+   <div class="header">
+    <div class="left">
+        <p>Home/Sign In</p>
+    </div>
+    <div class="right">
+    <form class="example" action="action_page.php">
+  <input type="text" placeholder="Search.." name="search">
+</form>
+    </div>
+</div>
+<p class="err" style="color:red">{{ err }}</p> 
+<div class="content">
+    <div class="content-left contentin-left">
+        <h1>Already a Member</h1>
+        <p>Sign In</p>
+         
+        <form class="form-input" method="post" id="form_signup" ng-submit="submit()">
+         <input type="email" name="email" placeholder="Email" value="" ng-model="formData.email" ng-required>
+        
+         <input type="password" name="password" placeholder="Password" ng-model="formData.password" ng-required>
+         
+         <input type="submit" name="submit" class="btn" value="submit">
+        </form>   
+    </div>
+    <div class="content-right contentin-right">
+        <div class="user">
+            <img src="application/views/img/avatar.png">
+            <div class="identity">
+                <h3>Already a member? <a ui-sref="signin">Sign In</a></h3>
+                <p>To submit tickets, browse through articles ans participate in the community</p>
+            </div>
+        </div>
+        <hr>
+        <div class="reset">
+       
+            <img src="application/views/img/lock.png">
+            <div class="identity">
+                <h3>Forgot Password? <a ui-sref="forgetpassword">Reset</a></h3>
+                <p>We will send a password reset link to your email address</p>
+            </div>
+        </div>
+    <hr>
+    <div class="admin">
+            <img src= "application/views/img/customer-service.png">
+            <div class="identity">
+                <h3>Are you an Agent? <a ui-sref="signin">Login here</a></h3>
+                <p>You will be taken to the agent interface</p>
+            </div>
+        </div>
+    </div>
+  </div>
+</body>

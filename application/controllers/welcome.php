@@ -30,22 +30,17 @@ class Welcome extends CI_Controller {
 	 * map to /index.php/welcome/<method_name>
 	 * @see http://codeigniter.com/user_guide/general/urls.html
 	 */
-	
+
 	public function index()
 	{
 		$data['userid']=$this->session->userdata('id');
 		$data['role']=$this->session->userdata('role');
-		$this->load->view('home.php',$data);
-	}
-	public function signup(){
-		$data['role']=0;
-		$this->session->unset_userdata('id');
-		$this->session->unset_userdata('role');
-		$this->session->unset_userdata('city');
-		$data['userid']=0;
-		$this->load->view('signup.php',$data);
+		$this->load->view('navigation.php');
 	}
 	public function form(){
+		// $obj = json_decode(file_get_contents('php://input'));
+		$_POST = json_decode(file_get_contents("php://input"), true);
+		
 		$this->session->unset_userdata('id');
 		$this->session->unset_userdata('role');
 		$this->session->unset_userdata('city');
@@ -53,13 +48,20 @@ class Welcome extends CI_Controller {
 		$this->load->helper('email');
 		$this->form_validation->set_rules('name', 'Name', 'trim|required|regex_match[/^[a-zA-Z\s]{2,20}$/]');
         $this->form_validation->set_rules('password', 'Password', 'trim|required|regex_match[/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/]');
-        $this->form_validation->set_rules('confirmpassword', 'Password Confirmation', 'trim|required|matches[password]');
+        $this->form_validation->set_rules('cpassword', 'Password Confirmation', 'trim|required|matches[password]');
         $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|is_unique[users.Email]');
 		$this->form_validation->set_rules('city', 'City', 'trim|required');
 		$data['userid']=0;
 		$data['role']=0;
 		if ($this->form_validation->run() == FALSE){
-			$this->load->view('signup.php',$data);
+			$form_error = array('name' => form_error('name'),
+            'password' => form_error('password'),
+            'cpassword' => form_error('cpassword'),
+            'email' => form_error('email'),
+            'city' => form_error('city'));
+			$data['err']=$form_error;
+			echo json_encode($data);
+			// $this->load->view('signup.php',$data);
 		}else{
 			$user=array(
 				'name' => $this->input->post('name'),
@@ -68,7 +70,6 @@ class Welcome extends CI_Controller {
                  'role'=>0,
 				 'city'=>$this->input->post('city')
 			);
-			
 			$this->load->model('Data');
 			$result=$this->Data->registerData($user);
 			$sess_array = array(
@@ -80,33 +81,22 @@ class Welcome extends CI_Controller {
 			$GLOBALS['city']=$this->input->post('city');
 		 	$this->hooks =& load_class('Hooks', 'core');
 		 	$this->hooks->_call_hook('myhook');
-			$data['err']="";
+			
+			echo json_encode($data);
 			//$this->db->affected_rows()
-			redirect('/welcome/signin', 'refresh');
+			//redirect('/welcome/signin', 'refresh');
 		
 	  }
 	}
-	public function signin(){
-		
-		$data['userid']=$this->session->userdata('id');
-		$data['role']=$this->session->userdata('role');
-		$data['err']='';
-		$this->load->view('signin.php',$data);
-	}
-	public function adminlogin(){
-		$data['userid']=$this->session->userdata('id');
-		$data['role']=$this->session->userdata('role');
-		$this->load->view('adminlogin.php',$data);
-	}
 	public function authenticateuser(){
-		$data['userid']=$this->session->userdata('id');
-		$data['role']=$this->session->userdata('role');
+		$_POST = json_decode(file_get_contents("php://input"), true);
 		$this->load->database();
 		
 		$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
 		$this->form_validation->set_rules('password', 'Password', 'trim|required|regex_match[/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/]');
 		if ($this->form_validation->run() == FALSE){
-			$this->load->view('signin.php',$data);
+			$data['err']=validation_errors();
+            echo json_encode($data);
 		}else{
 		$user=array(
 			'Email' => $this->input->post('email'),
@@ -125,24 +115,49 @@ class Welcome extends CI_Controller {
 			$data['userid']=$this->session->userdata('id');
 			$data['role']=$this->session->userdata('role');
 			
-            $this->load->view('user.php',$data);
+            echo json_encode($data);
 		 }else{
-			$data['err']="Invalid Username and Password";
-			$this->load->view('signin.php',$data);
+			$data['userid']=0;
+			$data['role']=0;
+			$data['error']="Invalid Username and Password";
+			echo json_encode($data);
 		 }
 		}
 	
 	}
-	public function ticket(){
-		$data['userid']=$this->session->userdata('id');
-		$data['role']=$this->session->userdata('role');
-		if($data['userid']==0){
-			redirect('/welcome/signin', 'refresh');
-		}else{
-			$this->load->view('ticket.php',$data);
-		}
+	public function upload(){
+		$file=$_FILES['file']['name'];
+		$filename='';
+		if(!empty($file)){
+			$location='./uploads/'.$this->session->userdata('id');
+			if(!is_dir($location)){
+				mkdir($location, 0755);
+			  }
+			
+			$config['upload_path'] = $location."/";
+			$config['allowed_types'] = 'gif|jpg|png';
+			$config['max_size']	= '20480000';
+			$config['max_width']  = '2048';
+			$config['max_height']  = '2048';
+			$config['remove_spaces']=TRUE;
+			$this->load->library('upload');
+			$this->upload->initialize($config);
+			if(file_exists($location."/".$file)){
+				$data['filename']=$location."/".$file;
+				echo json_encode($data);
+			}elseif (! $this->upload->do_upload('file')) {
+				$data['err']=$this->upload->display_errors();
+				 echo json_encode($data);
+			}else{
+			$filea = array('upload_data' => $this->upload->data());
+			$filename=$config['upload_path'].$filea['upload_data']['file_name'];
+			$data['filename']=$filename;
+			echo json_encode($data);
+		  }
+		}		
 	}
 	public function ticketValidation(){
+		$_POST = json_decode(file_get_contents("php://input"), true);
 		$data['userid']=$this->session->userdata('id');
 		$data['role']=$this->session->userdata('role');
 		$data['err']='';
@@ -151,86 +166,52 @@ class Welcome extends CI_Controller {
         $this->form_validation->set_rules('category', 'Priority', 'trim|required');
         $this->form_validation->set_rules('description', 'Discription', 'trim|required');
 		if ($this->form_validation->run() == FALSE){
-			$this->load->view('signup.php',$data);
+			$data['err']=validation_errors();
+			echo json_encode($data);
 		}else{
-			$file=$_FILES['file']['name'];
-			$flag=true;
-			$filename='';
-			if(empty($file)){
-                $flag=true;
-			}else{
-				$config['upload_path'] = './uploads/';
-				$config['allowed_types'] = 'gif|jpg|png|jpeg';
-				$config['max_size']	= '20480000';
-				$config['max_width']  = '2048';
-				$config['max_height']  = '2048';
-				$config['remove_spaces']=TRUE;
-				$this->load->library('upload');
-				$this->upload->initialize($config);
-                   
-		         if ( file_exists('uploads/'.$file)||! $this->upload->do_upload('file')) {
-					print_r($this->upload->display_errors());
-			         $flag=false;
-		        }else{
-			    $filea = array('upload_data' => $this->upload->data());
-				$filename=$config['upload_path'].$filea['upload_data']['file_name'];
-			  }
-			}
-		  if($flag){
 			$ticket=array(
 				'userid'=>$this->session->userdata('id'),
 				'subject' => $this->input->post('subject'),
 				'department' => $this->input->post('department'),
 				'category' =>$this->input->post('category'),
 				'description' => $this->input->post('description'),
-                 'file' =>$filename,
+                 'file' =>$this->input->post('filename'),
 				 'status' => 0
 			);
-			 $this->load->model('Data');
+			$this->load->model('Data');
 			$result=$this->Data->registerTicket($ticket);
-			redirect('/welcome/user', 'refresh');
-		}else{
-			$data['err']="Please attach valid file";
-			$this->load->view('ticket.php',$data);
+			echo json_encode($result);
 		}
-	}
-}
-        public function user(){
+    }
+        public function useraunthitencate(){
 	      $data['userid']=$this->session->userdata('id');
 		  $data['role']=$this->session->userdata('role');
-		  
-		  if($data['userid']==0){
-			redirect('/welcome/signin', 'refresh');
-		  }else{
-			
-			if($data['role']==1){
-				
+			if($data['role']==1){	
 			$this->load->model('Data');
             $config=array();
-			$config["base_url"] = site_url('welcome/user');
+			$config["base_url"] = 'admin';
 			$config["total_rows"] = $this->Data->get_count();
 			$config["per_page"] = 10;
-			$config["uri_segment"] = 5;
+			$config["uri_segment"] = 3;
 			 $this->pagination->initialize($config);
-			 $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+			 $page = $this->input->get('page') ? $this->input->get('page') : 0;
 			 
              $data["links"] = $this->pagination->create_links();
              $data['tickets'] = $this->Data->getTicket($config["per_page"], $page);		
-	         $this->load->view('admin.php',$data);
+	         echo json_encode($data);
 		  }else{
 			$this->load->model('Data');
             $config=array();
-			$config["base_url"] = site_url('welcome/user');
+			$config["base_url"] = 'users';
 			$config["total_rows"] = $this->Data->get_usercount($data['userid']);
 			$config["per_page"] = 10;
-			$config["uri_segment"] = 2;
-			 $this->pagination->initialize($config);
-			 $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+			$config["uri_segment"] = 3;
+            $this->pagination->initialize($config);
+			 $page = $this->input->get('page') ? $this->input->get('page') : 0;
 			 
              $data["links"] = $this->pagination->create_links();
              $data['tickets'] = $this->Data->getUserTicket($data['userid'],$config["per_page"], $page);		
-	         $this->load->view('user.php',$data);
-		  }
+	         echo json_encode($data);
 		}
     }
 	public function userprofile(){
@@ -238,32 +219,26 @@ class Welcome extends CI_Controller {
 		  $data['role']=$this->session->userdata('role');
 		$this->load->model('Data');
             $config=array();
-			$config["base_url"] = site_url('welcome/userprofile/'.$this->uri->segment(3));
-			$config["total_rows"] = $this->Data->get_usercount($this->uri->segment(3));
+			$config["base_url"] = "userprofiles/".$this->input->get('userid');
+			$config["total_rows"] = $this->Data->get_usercount($this->input->get('userid'));
 			$config["per_page"] = 10;
-			$config["uri_segment"] = 2;
+			$config["uri_segment"] = 4;
 			 $this->pagination->initialize($config);
-			 $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 0;
-             $data["userlinks"] = $this->pagination->create_links();
-             $data['tickets'] = $this->Data->getUserTicket($this->uri->segment(3),$config["per_page"], $page);		
-	         $this->load->view('ticketview.php',$data);
-	}
-	public function forgetpassword(){
-		$this->session->unset_userdata('id');
-		$this->session->unset_userdata('role');
-		$data['userid']=$this->session->userdata('id');
-		$data['role']=$this->session->userdata('role');
-		$data['err']='';
-		$this->load->view('forgetpassword',$data);
+			 $page = $this->input->get('page') ? $this->input->get('page') : 0;
+             $data["links"] = $this->pagination->create_links();
+             $data['tickets'] = $this->Data->getUserTicket($this->input->get('userid'),$config["per_page"], $page);		
+	        echo json_encode($data);
 	}
 	public function emailaunthitencate(){
+		$_POST = json_decode(file_get_contents("php://input"), true);
+		
 		$data['userid']=$this->session->userdata('id');
 		$data['role']=$this->session->userdata('role');
 		$data['err']='';
 		$this->load->database();
 		$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
 		if ($this->form_validation->run() == FALSE){
-			$this->load->view('forgetpassword.php',$data);
+			echo json_encode($data);
 		}else{
 		$user=array(
 			'Email' => $this->input->post('email'),
@@ -281,8 +256,8 @@ class Welcome extends CI_Controller {
 		$config = array();
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'smtp.gmail.com';
-		$config['smtp_user'] = 'ticketsyste20@gmail.com';
-		$config['smtp_pass'] = 'bkhonhnccuxempcn';
+		$config['smtp_user'] = $GLOBALS['email'];
+		$config['smtp_pass'] = $GLOBALS['emailpassword'];
 		$config['smtp_port'] = 587;
 		$config['charset'] = 'iso-8859-1';
 		$config['wordwrap'] = TRUE;
@@ -299,80 +274,81 @@ class Welcome extends CI_Controller {
 		$this->email->to($this->input->post('email'));
 		// $this->email->cc('');
 		// $this->email->bcc('');
-        $link= "<a href=".site_url('welcome/resetpassword')."/".$this->encrypt->sha1($this->session->userdata('id')*uniqid()).">Change Password</a>";
+		
+        $link= "<a href="."http://localhost/ticketmanagementsystem/resetpassword/".$this->encrypt->sha1($this->session->userdata('id')).">Change Password</a>";
 		$this->email->subject('Password reset');
 		$this->email->message($link);
 		 $this->email->send();
 		 $password=array(
 			'userid'=>$this->session->userdata('id'),
-			'password'=>$this->encrypt->sha1($this->session->userdata('id')*uniqid())
+			'password'=>$this->encrypt->sha1($this->session->userdata('id'))
 		);
+		
 		 $this->load->model('Data');
 		$result=$this->Data->addpassword($password);
 		if(!$result){
-		 $this->session->unset_userdata('id');
+		$this->session->unset_userdata('id');
 		$this->session->unset_userdata('role');
-		 redirect('/welcome/index', 'refresh');
+		      echo json_encode($data);
 		}else{
 			$data['err']="Email is already sent";
-			$this->load->view('forgetpassword',$data);
+			echo json_encode($data);
 		}
 		// echo $this->email->print_debugger();		
 	}else{
 		$data['err']="Email not found";
-			$this->load->view('forgetpassword',$data);
+		echo json_encode($data);
 	}
+    }
 }
-	}
 	public function resetpassword(){
 		$sess_array = array(
 				'id'    =>  $this->uri->segment(3)
 		);
 		$this->load->model('Data');
 		$result=$this->Data->validateuser($sess_array);
-		if($result!=null){
-			$data['userid']=$this->session->userdata('id');
-			$data['role']=$this->session->userdata('role');
-			$sess_array = array(
-				'id'    =>  $result[0]['userid']
-		);
-	        $this->session->set_userdata($sess_array);
-			$this->load->view('resetpassword',$data);
-		}else{
-			$this->load->view('sessionexpired');
-		}
+		echo json_encode($result);
 	}
 	public function password(){
+		$_POST = json_decode(file_get_contents("php://input"), true);
+		print_r($_POST);
 		$data['userid']=$this->session->userdata('id');
 		$data['role']=$this->session->userdata('role');
 		$this->form_validation->set_rules('password', 'Password', 'trim|required|regex_match[/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/]');
-        $this->form_validation->set_rules('confirmpassword', 'Password Confirmation', 'trim|required|matches[password]');
+        $this->form_validation->set_rules('cpassword', 'Password Confirmation', 'trim|required|matches[password]');
         if ($this->form_validation->run() == FALSE){
-			$this->load->view('resetpassword.php',$data);
+			$form_error = array(
+            'password' => form_error('password'),
+            'cpassword' => form_error('cpassword')
+            );
+			$data['err']=$form_error;
+			$data['id']=$this->encrypt->sha1($this->session->userdata('id'));
+			echo json_encode($data);
 		}else{
 			$password=array(
-				'userid'=>$this->session->userdata('id'),
+				'userid'=>$this->input->post('id'),
 				'password' => $this->encrypt->sha1($this->input->post('password')),
 			);
            
 			$this->load->model('Data');
-			$result=$this->Data->passwordupdate($password);
-	        redirect('/welcome/signin', 'refresh');
+			$data['result']=$this->Data->passwordupdate($password);
+	        echo json_encode($data);
 		}
 	}
-	public function user1(){
-		
-		$this->load->view('practice.php');
+	public function session(){
+		$data['userid']=$this->session->userdata('id');
+		$data['role']=$this->session->userdata('role');
+		echo json_encode($data);
 	}
-	public function user2(){
-		$this->load->view('form.html');
+	public function logout(){
+		$this->session->unset_userdata('id');
+		$this->session->unset_userdata('role');
+		$this->session->unset_userdata('city');
+		$data['userid']=$this->session->userdata('id');
+		$data['role']=$this->session->userdata('role');
+		echo json_encode($data);
 	}
-	public function userResult(){
-		$this->load->model('Data');
-		$result=$this->Data->getUserData();
-		
-		echo json_encode($result);
-	}
+	
 }
 
 /* End of file welcome.php */

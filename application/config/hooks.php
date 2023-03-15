@@ -18,5 +18,6 @@ $hook['myhook'][] = array(
     );
 
 
+
 /* End of file hooks.php */
 /* Location: ./application/config/hooks.php */

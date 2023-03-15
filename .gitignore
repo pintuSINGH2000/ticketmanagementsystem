@@ -10,3 +10,4 @@ application/logs/*
 uploads
 application/config/development
 user_guide
+.htaccess

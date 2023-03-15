@@ -1,16 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('asset/style.css'); ?>" type="text/css" media="all" />
-
-</head>
-<body>
-<?php include('navigation.php')?>
+<body ng-controller="ticketController">
 <div class="header">
     <div class="ticket-left">
         <p><a href="signin.php">My Area &nbsp;</a>/ Submit a Ticket</p>
@@ -27,20 +15,20 @@
         <h1>Submit a ticket </h1>
         <p><b>Ticket Information</b></p>
         </div>
-        <?php echo form_open_multipart('welcome/ticketValidation'); ?>
-        <label for="subject">Subject <span>*</span><span><?php echo form_error('subject'); ?></span></label>
-        <input type="text" name="subject">
-        <label for="department">Department <span>*</span><span><?php echo form_error('department'); ?></span></label>
-        <Select name="department" class="department">
+        <form class="form-input" method="post" id="form_signup" ng-submit="submit()" enctype="multipart/form-data">
+        <label for="subject">Subject <span>*</span>
+        <input type="text" name="subject" ng-model="formData.subject">
+        <label for="department">Department <span>*</span>
+        <Select name="department" class="department" ng-model="formData.department">
             <option value="Onboarding">Onboarding</option>
             <option value="Sucess">Sucess</option>
             <option value="Support">Support</option>
             <option value="Accounts">Accounts</option>
         </Select>
-        <label for="description">Description <span>*</span><span><?php echo form_error('description'); ?></span></label>
-        <textarea id="description" name="description" rows="5" cols="50"></textarea>
+        <label for="description">Description <span>*</span>
+        <textarea id="description" name="description" rows="5" cols="50" ng-model="formData.description"></textarea>
         <label for="category">Priority </label>
-        <Select name="category" class="category">
+        <Select name="category" class="category" ng-model="formData.category">
             <option value="">None</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
@@ -48,8 +36,8 @@
         </Select>
         <div class="attachment">
         <label for="file">Attachment</label>
-        <input type="file" name="file">
-        <span></span>
+        <input type="file" onchange="angular.element(this).scope().fileSelected(this)" />
+        <span><p class="err" style="color:red">{{ fileerr }}</p> </span>
         </div>
         <div class="ticket-btn">
          <input type="submit" name="submit" class="btn" value="submit">
@@ -58,7 +46,7 @@
         </form>
     </div>
     <div class="ticket-content-right">
-        <h1><img src="<?php echo base_url('asset/img/briefcase.png'); ?>">Popular Article</h1>
+        <h1><img src="application/views/img/briefcase.png">Popular Article</h1>
         <hr>
         <h3>How to Add New Admins</h3>
         <h3>Adding Faculity member to Alumni Portal</h3>

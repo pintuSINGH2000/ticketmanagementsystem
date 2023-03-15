@@ -40,8 +40,21 @@
 
 $route['default_controller'] = "welcome";
 $route['404_override'] = '';
-$route['user/(:num)'] = 'welcome/user';
-$route['userprofile/(:num)'] = 'welcome/userprofile';
+
+$route['home']="welcome/index";
+$route['ticket']="welcome/index";
+$route['signin']="welcome/index";
+$route['signup']="welcome/index";
+$route['users'] = 'welcome/index';
+$route['admin'] = 'welcome/index';
+$route['users/(:num)'] = 'welcome/index';
+$route['admin/(:num)'] = 'welcome/index';
+$route['userprofiles'] = 'welcome/index';
+$route['userprofiles/(:num)'] = 'welcome/index';
+$route['forgetpassword'] = 'welcome/index';
+$route['resetpassword'] = 'welcome/index';
+$route['resetpassword/(:any)'] = 'welcome/index';
+
 
 
 /* End of file routes.php */

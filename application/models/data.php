@@ -52,17 +52,23 @@ class Data extends CI_Model{
         return $query->result_array();
     }
     public function passwordupdate($data){
+      print_r($data);
         $sql="Update users set password=? where id=?";
         $query=$this->db->query($sql,array($data['password'],$data['userid'])); 
+        print_r($data);
+        $sql="DELETE from password WHERE userid=?";
+        $query=$this->db->query($sql,$data['userid']);
    }
    public function addpassword($data){
     $sql="select id from password where userid=?";
     $quer=$this->db->query($sql,array($data['userid']));
     $q=$quer->result_array();
+   
     if($q!=null){
       $sq ="SELECT TIMESTAMPDIFF(minute,time,CURRENT_TIMESTAMP) AS DateDiff FROM password where id=?;";
       $quer=$this->db->query($sq,array($q[0]['id']));
       $result=$quer->result_array();
+     
       if($result[0]['DateDiff']<30){
         return true;
       }else{
@@ -83,9 +89,7 @@ class Data extends CI_Model{
       $sq ="SELECT TIMESTAMPDIFF(minute,time,CURRENT_TIMESTAMP) AS DateDiff FROM password where id=?;";
       $quer=$this->db->query($sq,array($q[0]['id']));
       $result=$quer->result_array();
-      
       if($result[0]['DateDiff']<30){
-        $this->deletepassword($q[0]['id']);
         return $q;
       }else{
         $this->deletepassword($q[0]['id']);
@@ -99,7 +103,6 @@ class Data extends CI_Model{
    public function updateTime($data){
     $sql="update users set temp=? where id=?";
     $query=$this->db->query($sql,array($data['temp'],$data['userid']));
-   
    }
 }
 ?>
